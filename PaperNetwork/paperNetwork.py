@@ -216,7 +216,14 @@ class PaperNetwork:
             #     print staticInk[paperKey]
             if len(thePaper.citeby_) == 0:
                 continue
+
             nextIncreaseWeight = PPR_ALPHA * weight / len(thePaper.citeby_)
+
+            totalWeight = 0.0
+            for nextPaper in thePaper.citeby_:
+                if nextPaper == '':
+                    continue
+                totalWeight += product(self.key2paper_[nextPaper].topicVec_, thePaper.topicVec_)
 
             for nextPaper in thePaper.citeby_:
                 if nextPaper == '':
@@ -224,9 +231,11 @@ class PaperNetwork:
                 tempnode = nextPaper + u'\t' + authorName
                 if node2entry.has_key(tempnode):
                     tempentry = node2entry[tempnode]
-                    activeInk.decrease_key(tempentry, tempentry.get_priority() - nextIncreaseWeight)
+                    # activeInk.decrease_key(tempentry, tempentry.get_priority() - nextIncreaseWeight)
+                    activeInk.decrease_key(tempentry, tempentry.get_priority() - PPR_ALPHA *weight* product(self.key2paper_[nextPaper].topicVec_, thePaper.topicVec_) / totalWeight)
                 else:
-                    tempentry = activeInk.enqueue(tempnode, -nextIncreaseWeight)
+                    # tempentry = activeInk.enqueue(tempnode, -nextIncreaseWeight)
+                    tempentry = activeInk.enqueue(tempnode, -PPR_ALPHA *weight* product(self.key2paper_[nextPaper].topicVec_, thePaper.topicVec_)/totalWeight)
                     node2entry[tempnode] = tempentry
         print 'End propogation.'
         return staticInk

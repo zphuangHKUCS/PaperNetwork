@@ -17,13 +17,12 @@ def testLDA(network, testVenues, author2topic, topic2word):
 
 
 
-def evaluate_LDA(network, testVenues, author2topic, topic2word):
-    pfile = open('./LDAresult_T30', 'rb')
+def evaluate_LDA(network, testPapers, author2topic, topic2word):
+    pfile = open('./LDAresult_T10', 'rb')
     paper2vec = pickle.load(pfile)
 
-
     similarityDict = dict()
-    for key in paper2vec:
+    for key in testPapers:
         similarityDict[key] = dict()
         for author in author2topic:
             similarityDict[key][author] = product(author2topic[author], paper2vec[key])
@@ -31,7 +30,7 @@ def evaluate_LDA(network, testVenues, author2topic, topic2word):
     for k in [1, 5, 10, 50, 100]:
         hit = 0
         total = 0
-        for key in similarityDict:
+        for key in testPapers:
             topkList = heapq.nlargest(k, similarityDict[key], key=similarityDict[key].__getitem__)
             total += 1
             flag = 0
@@ -307,3 +306,50 @@ def getAuthorPool(network, testVenue):
 
     for p in testPaper:
         print p
+
+##################  For co-author recommendation  ############
+
+def getGTForRecommendation(network, testPapers, authorPool):
+    oldCoAuthor = dict()
+    for key in network.key2paper_:
+        if key in testPapers:
+            continue
+        thePaper = network.key2paper_[key]
+        importantAuthors = []
+        for a in thePaper.authors_:
+            if a in authorPool:
+                importantAuthors.append(a)
+            if len(importantAuthors) < 2:
+                continue
+            for a in importantAuthors:
+                for b in importantAuthors:
+                    if a == b:
+                        continue
+                    if a not in oldCoAuthor:
+                        oldCoAuthor[a] = set()
+                    if b not in oldCoAuthor[a]:
+                        oldCoAuthor[a].add(b)
+    # print oldCoAuthor
+
+    GT = dict()
+    for key in testPapers:
+        thePaper = network.key2paper_[key]
+        importantAuthors = []
+        for a in thePaper.authors_:
+            if a in authorPool:
+                importantAuthors.append(a)
+            if len(importantAuthors) < 2:
+                continue
+            for a in importantAuthors:
+                for b in importantAuthors:
+                    if a == b:
+                        continue
+                    if a not in GT:
+                        GT[a] = set()
+                    if b not in GT[a] and a in oldCoAuthor and b not in oldCoAuthor[a]:
+                        GT[a].add(b)
+
+    print GT
+
+    # pfile = open(COAUTHOR_GT_PICKLE_PATH, 'wb')
+    # pickle.dump(GT, pfile)
