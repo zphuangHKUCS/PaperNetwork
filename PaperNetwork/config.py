@@ -23,7 +23,7 @@ LDA_THETA_PATH = COMPUTER +':\\research\\data\\ACM_IEEE\\LDA\\bagOfWord_in_10.tx
 
 # constant
 
-PPR_THRESHOLD = 0.001
+PPR_THRESHOLD = 0.00001
 PPR_ALPHA = 0.5
 
 # final dataset path

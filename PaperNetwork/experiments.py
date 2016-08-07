@@ -450,8 +450,7 @@ def calCurve(simDict, PS, TN):
     roc_x.append(0.0)
     roc_y.append(0.0)
 
-    roc_x.append(1.0)
-    roc_y.append(1.0)
+
 
     for T in thr:
         for (a,b) in simDict:
@@ -461,11 +460,24 @@ def calCurve(simDict, PS, TN):
                     TP = TP + 1
                 else:
                     FP = FP + 1
-        print [FP, TP]
+        # print [FP, TP]
         roc_x.append(FP / float(N))
         roc_y.append(TP / float(P))
         FP = 0
         TP = 0
+    roc_x.append(1.0)
+    roc_y.append(1.0)
+
+    area = 0.0
+
+    current_x = 0.0
+    current_y = 0.0
+    for i in range(0, len(roc_y)):
+        area += (current_y + roc_y[i]) * (roc_x[i] - current_x) / 2
+        current_x = roc_x[i]
+        current_y = roc_y[i]
+
+    print area
 
     plt.scatter(roc_x, roc_y)
     plt.show()
