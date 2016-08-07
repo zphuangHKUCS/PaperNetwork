@@ -35,7 +35,7 @@ testVenue = readTextVenues(TEST_VENUE_PATH)
 # network.saveToPickle('network_T20.pfile')
 
 # testLDA(network,testVenue,author2topic,topic2word)
-evaluate_LDA(network,testPapers,author2topic,topic2word)
+# evaluate_LDA(network,testPapers,author2topic,topic2word)
 
 
 # getAllTopicVec(network)
@@ -43,3 +43,9 @@ evaluate_LDA(network,testPapers,author2topic,topic2word)
 
 ############  Co-author recommendation  #########
 # getGTForRecommendation(network, testPapers, authorPool)
+
+coauthorGTpfile = open(COAUTHOR_GT_PICKLE_PATH, 'rb')
+GT = pickle.load(coauthorGTpfile)
+
+[TP, FP] = genTestPair(network, GT, testPapers)
+exp_coauthor_recommend_propogation(network, GT, testPapers, TP, FP)

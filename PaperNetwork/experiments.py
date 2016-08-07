@@ -1,6 +1,9 @@
 from paperNetwork import *
-
 from meta import *
+
+import random
+import matplotlib.pyplot as plt
+import numpy as np
 
 def testLDA(network, testVenues, author2topic, topic2word):
     result = dict()
@@ -353,3 +356,118 @@ def getGTForRecommendation(network, testPapers, authorPool):
 
     # pfile = open(COAUTHOR_GT_PICKLE_PATH, 'wb')
     # pickle.dump(GT, pfile)
+
+def genTestPair(network, GT, testPapers):
+    TP = []
+    FP = []
+    for a in GT:
+        for b in GT[a]:
+            TP.append((a,b))
+
+    FP_candidates = set()
+    for a in GT:
+        coauthors = set()
+        if len(GT[a]) == 0:
+            continue
+        for p in network.author2key_[a]:
+            if p in testPapers:
+                continue
+            thePaper = network.key2paper_[p]
+            for a2 in thePaper.authors_:
+                if a == a2:
+                    continue
+                coauthors.add(a2)
+        for aa in coauthors:
+            for p in network.author2key_[aa]:
+                if p in testPapers:
+                    continue
+                thePaper = network.key2paper_[p]
+                for a2 in thePaper.authors_:
+                    if a2 == a or a2 in coauthors:
+                        continue
+                    FP_candidates.add((a,a2))
+
+    FP = random.sample(list(FP_candidates),len(TP))
+
+    return [TP, FP]
+
+def exp_coauthor_recommend_propogation(network, GT, testPapers, TP, FP):
+
+    # remove the papers in the last two years
+    for key in network.key2paper_:
+        thePaper = network.key2paper_[key]
+        thePaper.cite_ = list(set(thePaper.cite_) - set(testPapers))
+        thePaper.citeby_ = list(set(thePaper.citeby_) - set(testPapers))
+    print len(network.key2paper_)
+    for key in testPapers:
+        network.key2paper_.pop(key)
+    print len(network.key2paper_)
+
+    # results = network.propagation_cite()
+    results = network.propagation_cite_topic()
+
+    rec_dict = dict()
+    for author in GT:
+        rec_dict[author] = dict()
+        for p in network.author2key_[author]:
+            if p not in results:
+                continue
+            for a2 in results[p]:
+                if a2 not in rec_dict[author]:
+                    rec_dict[author][a2] = 0.0
+                rec_dict[author][a2] += results[p][a2] / len(network.author2key_[author])
+
+    recDict = dict()
+
+    for (a, b) in TP:
+        if a in rec_dict and b in rec_dict[a]:
+            recDict[(a, b)] = rec_dict[a][b]
+        else:
+            recDict[(a, b)] = 0.0
+
+    for (a, b) in FP:
+        if a in rec_dict and b in rec_dict[a]:
+            recDict[(a, b)] = rec_dict[a][b]
+        else:
+            recDict[(a, b)] = 0.0
+
+    calCurve(recDict, TP, FP)
+
+def calCurve(simDict, PS, TN):
+    roc_x = []
+    roc_y = []
+
+    FP = 0
+    TP = 0
+
+    P = len(PS)
+    N = len(TN)
+
+    thr = set()
+    for (a,b) in simDict:
+        thr.add(simDict[(a,b)])
+
+    roc_x.append(0.0)
+    roc_y.append(0.0)
+
+    roc_x.append(1.0)
+    roc_y.append(1.0)
+
+    for T in thr:
+        for (a,b) in simDict:
+
+            if (simDict[(a,b)] > T):
+                if ((a,b) in PS):
+                    TP = TP + 1
+                else:
+                    FP = FP + 1
+        print [FP, TP]
+        roc_x.append(FP / float(N))
+        roc_y.append(TP / float(P))
+        FP = 0
+        TP = 0
+
+    plt.scatter(roc_x, roc_y)
+    plt.show()
+
+

@@ -231,10 +231,86 @@ class PaperNetwork:
                 tempnode = nextPaper + u'\t' + authorName
                 if node2entry.has_key(tempnode):
                     tempentry = node2entry[tempnode]
-                    # activeInk.decrease_key(tempentry, tempentry.get_priority() - nextIncreaseWeight)
+                    activeInk.decrease_key(tempentry, tempentry.get_priority() - nextIncreaseWeight)
+                else:
+                    tempentry = activeInk.enqueue(tempnode, -nextIncreaseWeight)
+                    node2entry[tempnode] = tempentry
+        print 'End propogation.'
+        return staticInk
+
+    def propagation_cite_topic(self):
+        print 'Start propogation.'
+        # return the result dicts
+
+        node2entry = dict()
+        staticInk = dict()
+        for key in self.key2paper_:
+            staticInk[key] = dict()
+        activeInk = fibonacci_heap_mod.Fibonacci_heap()
+
+        #initialize the active ink
+        for key in self.key2paper_:
+            thePaper = self.key2paper_[key]
+            for author in thePaper.authors_:
+                tempNode = key + u'\t' +author
+                entry = activeInk.enqueue(tempNode, -1.0 / len(thePaper.authors_))
+                node2entry.update({tempNode:entry})
+                #node2entry[tempNode] = entry
+
+        #start propogation
+        printCount = 0
+        while activeInk.m_size > 0:
+            printCount += 1
+
+            topnode = activeInk.min()
+            activeInk.dequeue_min()
+            node = topnode.get_value()
+            paperKey = node.split('\t')[0]
+            authorName = node.split('\t')[1]
+            # print [paperKey, authorName]
+            if not node2entry.has_key(node):
+                print 'node not in heap!'
+                continue
+            node2entry.pop(node)
+            weight = -topnode.get_priority()
+
+            if printCount == 10000:
+                printCount = 0
+                print 'size:' + (str)(activeInk.m_size) + '\t' + 'weight:' + '\t' + (str)(weight)
+
+            if weight < PPR_THRESHOLD:
+                # the weight is too small to continue
+                break
+
+            # print (str)(weight) + '\t' + thePaper.title_
+            # print paperKey
+            if not staticInk[paperKey].has_key(authorName):
+                staticInk[paperKey][authorName] = (1.0 - PPR_ALPHA) * weight
+            else:
+                staticInk[paperKey][authorName] += (1.0 - PPR_ALPHA) * weight
+
+            thePaper = self.key2paper_[node.split('\t')[0]]
+            # if thePaper.fullVenue_ in testVenues:
+            #     print 'HIT a test paper!'
+            #     print staticInk[paperKey]
+            if len(thePaper.citeby_) == 0:
+                continue
+
+
+            totalWeight = 0.0
+            for nextPaper in thePaper.citeby_:
+                if nextPaper == '':
+                    continue
+                totalWeight += product(self.key2paper_[nextPaper].topicVec_, thePaper.topicVec_)
+
+            for nextPaper in thePaper.citeby_:
+                if nextPaper == '':
+                    continue
+                tempnode = nextPaper + u'\t' + authorName
+                if node2entry.has_key(tempnode):
+                    tempentry = node2entry[tempnode]
                     activeInk.decrease_key(tempentry, tempentry.get_priority() - PPR_ALPHA *weight* product(self.key2paper_[nextPaper].topicVec_, thePaper.topicVec_) / totalWeight)
                 else:
-                    # tempentry = activeInk.enqueue(tempnode, -nextIncreaseWeight)
                     tempentry = activeInk.enqueue(tempnode, -PPR_ALPHA *weight* product(self.key2paper_[nextPaper].topicVec_, thePaper.topicVec_)/totalWeight)
                     node2entry[tempnode] = tempentry
         print 'End propogation.'
