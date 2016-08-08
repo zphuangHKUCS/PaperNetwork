@@ -1,7 +1,7 @@
 # Paths
 
-# COMPUTER = 'C'
-COMPUTER = 'F'
+COMPUTER = 'C'
+# COMPUTER = 'F'
 
 # temp use
 VENUE_SHORT_PATH = COMPUTER + ':\\research\\data\\ACM_IEEE\\dataBK\\venue2shortVenue.txt'
@@ -12,11 +12,11 @@ RAW_PAPERS_PATH = COMPUTER +':\\research\\data\\ACM_IEEE\\rawPapers.txt'
 RAW_TEXT_DIR = COMPUTER +':\\research\\data\\ACM_IEEE\\pdfTxt'
 PAPER_NETWORK_PICKLE_PATH = COMPUTER +':\\research\\data\\ACM_IEEE\\network_a.pfile'
 
-LDA_PHI_PATH = COMPUTER +':\\research\\data\\ACM_IEEE\\LDA\\bagOfWord_in_10.txt_phi'
-LDA_THETA_PATH = COMPUTER +':\\research\\data\\ACM_IEEE\\LDA\\bagOfWord_in_10.txt_theta'
+# LDA_PHI_PATH = COMPUTER +':\\research\\data\\ACM_IEEE\\LDA\\bagOfWord_in_10.txt_phi'
+# LDA_THETA_PATH = COMPUTER +':\\research\\data\\ACM_IEEE\\LDA\\bagOfWord_in_10.txt_theta'
 
-# LDA_PHI_PATH = COMPUTER +':\\research\\data\\ACM_IEEE\\LDA\\bagOfWord_in_20.txt_phi'
-# LDA_THETA_PATH = COMPUTER +':\\research\\data\\ACM_IEEE\\LDA\\bagOfWord_in_20.txt_theta'
+LDA_PHI_PATH = COMPUTER +':\\research\\data\\ACM_IEEE\\LDA\\bagOfWord_in_20.txt_phi'
+LDA_THETA_PATH = COMPUTER +':\\research\\data\\ACM_IEEE\\LDA\\bagOfWord_in_20.txt_theta'
 
 # LDA_PHI_PATH = COMPUTER +':\\research\\data\\ACM_IEEE\\LDA\\bagOfWord_in_30.txt_phi'
 # LDA_THETA_PATH = COMPUTER +':\\research\\data\\ACM_IEEE\\LDA\\bagOfWord_in_30.txt_theta'

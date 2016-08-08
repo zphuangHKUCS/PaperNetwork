@@ -393,15 +393,7 @@ def genTestPair(network, GT, testPapers):
 
 def exp_coauthor_recommend_propogation(network, GT, testPapers, TP, FP):
 
-    # remove the papers in the last two years
-    for key in network.key2paper_:
-        thePaper = network.key2paper_[key]
-        thePaper.cite_ = list(set(thePaper.cite_) - set(testPapers))
-        thePaper.citeby_ = list(set(thePaper.citeby_) - set(testPapers))
-    print len(network.key2paper_)
-    for key in testPapers:
-        network.key2paper_.pop(key)
-    print len(network.key2paper_)
+    removeTestPapers(network, testPapers)
 
     # results = network.propagation_cite()
     results = network.propagation_cite_topic()
@@ -433,6 +425,56 @@ def exp_coauthor_recommend_propogation(network, GT, testPapers, TP, FP):
 
     calCurve(recDict, TP, FP)
 
+def removeTestPapers(network, testPapers):
+    # remove the papers in the last two years
+    print len(network.key2paper_)
+    for key in network.key2paper_:
+        thePaper = network.key2paper_[key]
+        thePaper.cite_ = list(set(thePaper.cite_) - set(testPapers))
+        thePaper.citeby_ = list(set(thePaper.citeby_) - set(testPapers))
+
+    for author in network.author2key_:
+        network.author2key_[author] = list(set(network.author2key_[author]) - set(testPapers))
+
+    for venue in network.venue2key_:
+        network.venue2key_[venue] = list(set(network.venue2key_[venue]) - set(testPapers))
+
+    for topic in network.topic2key_:
+        network.topic2key_[topic] = list(set(network.topic2key_[topic]) - set(testPapers))
+
+    for key in testPapers:
+        network.key2paper_.pop(key)
+
+    print len(network.key2paper_)
+
+def exp_coauthor_recommend_metapath(network, GT, testPapers, TP, FP):
+    removeTestPapers(network, testPapers)
+
+    metapath_APPA = MetaPath(network,['write', 'cite', 'writeby'])
+    metapath_APPA2 = MetaPath(network,['write', 'citeby', 'writeby'])
+    metapath_APAPA = MetaPath(network, ['write', 'writeby', 'write', 'writeby'])
+    metapath_APVPA = MetaPath(network,['write', 'publishby','publish', 'writeby'])
+    metapath_APTPA = MetaPath(network,['write', 'mention','mentionby', 'writeby'])
+
+    testMataPath = metapath_APTPA
+
+    simDict = dict()
+    for (a,b) in TP:
+        APPA_PC = testMataPath.calPathCount(a)
+        if b in APPA_PC:
+            simDict[(a,b)] = float(APPA_PC[b])
+        else:
+            simDict[(a,b)] = 0.0
+
+    for (a,b) in FP:
+        APPA_PC = testMataPath.calPathCount(a)
+        if b in APPA_PC:
+            simDict[(a,b)] = float(APPA_PC[b])
+        else:
+            simDict[(a,b)] = 0.0
+
+    calCurve(simDict,TP, FP)
+
 def calCurve(simDict, PS, TN):
     roc_x = []
     roc_y = []
@@ -450,11 +492,8 @@ def calCurve(simDict, PS, TN):
     roc_x.append(0.0)
     roc_y.append(0.0)
 
-
-
     for T in thr:
         for (a,b) in simDict:
-
             if (simDict[(a,b)] > T):
                 if ((a,b) in PS):
                     TP = TP + 1
@@ -465,13 +504,20 @@ def calCurve(simDict, PS, TN):
         roc_y.append(TP / float(P))
         FP = 0
         TP = 0
+
     roc_x.append(1.0)
     roc_y.append(1.0)
+
+    roc_x = sorted(roc_x)
+    roc_y = sorted(roc_y)
 
     area = 0.0
 
     current_x = 0.0
     current_y = 0.0
+
+    print roc_x
+    print roc_y
     for i in range(0, len(roc_y)):
         area += (current_y + roc_y[i]) * (roc_x[i] - current_x) / 2
         current_x = roc_x[i]
