@@ -460,16 +460,19 @@ def exp_coauthor_recommend_metapath(network, GT, testPapers, TP, FP):
 
     simDict = dict()
     for (a,b) in TP:
-        APPA_PC = testMataPath.calPathCount(a)
-        if b in APPA_PC:
-            simDict[(a,b)] = float(APPA_PC[b])
+        # APPA_PC = testMataPath.calPathCount(a)
+        APPA_PCRW = testMataPath.calPCRW(a)
+        # if b in APPA_PC:
+        if b in APPA_PCRW:
+            simDict[(a,b)] = float(APPA_PCRW[b])
         else:
             simDict[(a,b)] = 0.0
 
     for (a,b) in FP:
-        APPA_PC = testMataPath.calPathCount(a)
-        if b in APPA_PC:
-            simDict[(a,b)] = float(APPA_PC[b])
+        # APPA_PC = testMataPath.calPathCount(a)
+        APPA_PCRW = testMataPath.calPCRW(a)
+        if b in APPA_PCRW:
+            simDict[(a,b)] = float(APPA_PCRW[b])
         else:
             simDict[(a,b)] = 0.0
 

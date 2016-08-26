@@ -48,6 +48,7 @@ coauthorGTpfile = open(COAUTHOR_GT_PICKLE_PATH, 'rb')
 GT = pickle.load(coauthorGTpfile)
 
 [TP, FP] = genTestPair(network, GT, testPapers)
+
 # exp_coauthor_recommend_propogation(network, GT, testPapers, TP, FP)
 
 exp_coauthor_recommend_metapath(network, GT, testPapers, TP, FP)
